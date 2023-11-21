@@ -2484,73 +2484,76 @@ an ABORT chunk SHALL NOT be sent.<a href="#section-6.4-3" class="pilcrow">¶</a>
         <h3 id="name-establishment-of-a-protecte">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-establishment-of-a-protecte" class="section-name selfRef">Establishment of a Protected Association</a>
         </h3>
-<p id="section-7.1-1">An SCTP Endpoint acting as initiator willing to create a protected
-association shall send to the remote peer an INIT chunk containing the
-Protected Association parameter (see <a href="#protectedassoc-parameter" class="auto internal xref">Section 4.1</a>)
-whith the optional information, if any (see
-<a href="#sctp-DTLS-chunk-init-options" class="auto internal xref">Figure 2</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">An SCTP Endpoint acting as initiator willing to create a DTLS 1.3
+chunk protected association shall send to the remote peer an INIT
+chunk containing the DTLS 1.3 Chunk Protected Association parameter
+(see <a href="#protectedassoc-parameter" class="auto internal xref">Section 4.1</a>) whith the optional information, if
+any (see <a href="#sctp-DTLS-chunk-init-options" class="auto internal xref">Figure 2</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">An SCTP Endpoint acting as responder, when receiving an INIT chunk
-with protected association parameter, will reply with INIT-ACK
-with its own optional information.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">Additionally, an SCTP Endpoint acting as responder willing to
-support only protected associations shall consider INIT chunk not
-containing the Protected Association parameter as an error, thus it
-will reply with an ABORT chunk according to what specified in
-<a href="#enoprotected" class="auto internal xref">Section 6.1</a> indicating that for this endpoint mandatory protected
-association parameter is missing.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+with DTLS 1.3 Chunk Protected Association parameter, will reply with
+INIT-ACK with its own DTLS 1.3 Chunk Protected Association parameter
+and any optional information.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">Additionally, an SCTP Endpoint acting as responder willing to support
+only protected associations shall consider INIT chunk not containing
+the DTLS 1.3 Chunk Protected Association parameter as an error, thus
+it will reply with an ABORT chunk according to what specified in
+<a href="#enoprotected" class="auto internal xref">Section 6.1</a> indicating that for this endpoint mandatory DTLS 1.3
+Chunk Protected Association parameter is missing.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <p id="section-7.1-4">When initiator and responder have agreed on a protected association by
-means of handshaking INIT/INIT-ACK the
-SCTP association establishment continues until it has reached the
-ESTABLISHED state. However, before the SCTP assocation is protected by
-the DTLS Chunk and DTLS 1.3 some additional states
-needs to be passed. First DTLS 1.3 needs be initializied
-in the PROTECTION INTILIZATION state. When that has been accomplished
-one enters the VALIDATION state where one validates the exchange of
-the Protected Association Parameter. If that is successful one enters
-the PROTECTED state. This state sequence is depicted in
-<a href="#init-state-machine" class="auto internal xref">Section 7.3</a>.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
-<p id="section-7.1-5">Until the procedure has reached the PROTECTED state the only usage
-of DATA Chunks that is accepted is DATA Chunks with the SCTP-DTLS
-PPID. Any other DATA chunk being sent on a Protected
-association SHALL be silently discarded.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
-<p id="section-7.1-6">DTLS 1.3 initializes itself by transferring its own handshake
-messages as payload of the DATA chunk necessary. The DTLS Chunk
-initialization SHOULD be supervised by a T-valid timer that fits
-DTLS 1.3 handshake and may also be further adjusted based on whether
+means of handshaking INIT/INIT-ACK the SCTP association establishment
+continues until it has reached the ESTABLISHED state. However, before
+the SCTP assocation is protected by the DTLS 1.3 Chunk some additional
+states needs to be passed. First DTLS 1.3 Chunk needs be initializied
+in the PROTECTION INTILIZATION state. This MAY be accomplished by the
+procedure defined in <span>[<a href="#I-D.westerlund-tsvwg-sctp-DTLS-handshake" class="cite xref">I-D.westerlund-tsvwg-sctp-DTLS-handshake</a>]</span>, or
+through other methods that results in at least one Key ID has
+initialized state using the API. When that has been accomplished one
+enters the VALIDATION state where one validates the exchange of the
+DTLS 1.3 Chunk Protected Association Parameter and any alternative
+protection solutions. If that is successful one enters the PROTECTED
+state. This state sequence is depicted in <a href="#init-state-machine" class="auto internal xref">Section 7.3</a>.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<p id="section-7.1-5">Until the procedure has reached the PROTECTED state the only usage of
+DATA Chunks that is accepted is DATA Chunks with the SCTP-DTLS PPID
+used to exchange in-band key establishment messages for DTLS. Any
+other DATA chunk being sent on a Protected association SHALL be
+silently discarded.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+<p id="section-7.1-6">DTLS 1.3 initializes itself by transferring its own handshake messages
+as payload of the DATA chunk necessary
+<span>[<a href="#I-D.westerlund-tsvwg-sctp-DTLS-handshake" class="cite xref">I-D.westerlund-tsvwg-sctp-DTLS-handshake</a>]</span>. The DTLS 1.3 Chunk
+initialization SHOULD be supervised by a T-valid timer that fits DTLS
+1.3 handshake and may also be further adjusted based on whether
 expected RTT values are outside of the ones commonly occurring on the
 general Internet, see <a href="#t-valid-considerations" class="auto internal xref">Section 7.5</a>. At completion of
-DTLS 1.3 initialization the setup of the Protected
-association is complete and one enters the VALIDATION state, and from
-that time on only DTLS chunks will be exchanged. Any plain text
-chunk will be silently discarded.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7">DTLS 1.3 key establishment is in-band, thus it
-will start the handshake with its peer and in case of failure
-or T-valid timeout, the endpoint will generate an ABORT chunk.
+DTLS 1.3 Chunk initialization the setup of the Protected association is
+complete and one enters the VALIDATION state, and from that time on
+only DTLS 1.3 chunks will be exchanged. Any plain text chunk will be
+silently discarded.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+<p id="section-7.1-7">In case of T-valid timeout, the endpoint will generate an ABORT chunk.
 The ERROR handling follows what specified in <a href="#ekeyhandshake" class="auto internal xref">Section 6.2.1</a>.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 <p id="section-7.1-8">When entering the VALIDATION state, the initiator MUST send to the
 responder a PVALID chunk (see
-<a href="#sctp-DTLS-chunk-newchunk-pvalid-chunk" class="auto internal xref">Table 3</a>) containing the Options
-previously sent in the protected association
-parameter of the INIT chunk. The transmission of the PVALID chunk MUST
-be done reliably. The responder receiving the PVALID chunk will
-compare the Options with the one previously received
-in the INIT chunk, if they are exactly the same, it will reply to the initiator
-with a PVALID chunk containing the chosen Options, otherwise
-it will reply with an ABORT chunk. ERROR CAUSE will indicate "Failure
-in Validation" and the SCTP association will be
-terminated. If the association was not aborted the protected
-association is considered successfully established and the PROTECTED
-state is entered.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
+<a href="#sctp-DTLS-chunk-newchunk-pvalid-chunk" class="auto internal xref">Table 3</a>) containing indication of
+all offered protection solutions previously sent in the INIT chunk,
+including the 0x1 value indicating that DTLS 1.3 Chunk Protected
+Association parameter was included. The transmission of the PVALID
+chunk MUST be done reliably. The responder receiving the PVALID chunk
+will compare the indicated solutions with the ones previously received
+as parameters in the INIT chunk, if they are exactly the same, it will
+reply to the initiator with a PVALID chunk containing the chose
+proteciton solution, otherwise it will reply with an ABORT
+chunk. ERROR CAUSE will indicate "Failure in Validation" and the SCTP
+association will be terminated. If the association was not aborted the
+protected association is considered successfully established and the
+PROTECTED state is entered.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
 <p id="section-7.1-9">When the initiator receives the PVALID chunk, it will compare with the
-previous chosen Options and in case of mismatch with the one
-received previously in the protected association parameter in the
-INIT-ACK chunk, it will reply with ABORT with the ERROR CAUSE "Failure
-in Validation", otherwise the protected association
-is successfully established and the initiator enters the PROTECTED
-state.<a href="#section-7.1-9" class="pilcrow">¶</a></p>
-<p id="section-7.1-10">If T-valid timer expires either at initiator or responder, it will generate
-an ABORT chunk.  The ERROR handling follows what
-specified in <a href="#etmout" class="auto internal xref">Section 6.2.3</a>.<a href="#section-7.1-10" class="pilcrow">¶</a></p>
+previous chosen Options and in case of mismatch with the one received
+previously in the protected association parameter in the INIT-ACK
+chunk, it will reply with ABORT with the ERROR CAUSE "Failure in
+Validation", otherwise the protected association is successfully
+established and the initiator enters the PROTECTED state.<a href="#section-7.1-9" class="pilcrow">¶</a></p>
+<p id="section-7.1-10">If T-valid timer expires either at initiator or responder, it will
+generate an ABORT chunk.  The ERROR handling follows what specified in
+<a href="#etmout" class="auto internal xref">Section 6.2.3</a>.<a href="#section-7.1-10" class="pilcrow">¶</a></p>
 <p id="section-7.1-11">In the PROTECTED state any ULP SCTP messages for any PPID MAY be
 exchanged in the protected SCTP association.<a href="#section-7.1-11" class="pilcrow">¶</a></p>
 </section>
@@ -2654,16 +2657,14 @@ document.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-considerations-on-key-manag" class="section-name selfRef">Considerations on Key Management</a>
         </h3>
 <p id="section-7.4-1">When the Association is in PROTECTION INITILIZATION state, in-band key
-management shall exploit SCTP DATA chunk with the SCTP-DTLS
-PPID (see <a href="#iana-payload-protection-id" class="auto internal xref">Table 9</a>) that will be sent
+management MAY exploit SCTP DATA chunk with the SCTP-DTLS PPID (see
+<a href="#iana-payload-protection-id" class="auto internal xref">Table 9</a>) for message transfer that will be sent
 unencrypted.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
 <p id="section-7.4-2">When the Association is in DTLS chunk PROTECTED state and the SCTP
 assocation is in ESTABLISHED or any of the states that can be reached
-after ESTABLISHED state, in-band key management shall exploit SCTP
-DATA chunk that will be protected by the Protection Operator and
-encapsulated in DTLS chunks.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
-<p id="section-7.4-3">In-band key management shall use a dedicated SCTP-DTLS Payload Protocol
-Identifier assigned by IANA.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+after ESTABLISHED state, in-band key management are RECOMMENDED to
+exploit SCTP DATA chunk for message transmission that will be
+protected by the DTLS 1.3 protected and encapsulated in DTLS chunks.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="t-valid-considerations">
@@ -2671,9 +2672,9 @@ Identifier assigned by IANA.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
         <h3 id="name-consideration-on-t-valid">
 <a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-consideration-on-t-valid" class="section-name selfRef">Consideration on T-valid</a>
         </h3>
-<p id="section-7.5-1">The timer T-Valid supervises initializations that depend on how
-the handshake is specified for the Protection Engine and also on
-the characteristics of the transport network.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-1">The timer T-Valid supervises initializations that depend on how the
+handshake is specified for the key establishment used for the DTLS 1.3
+chunk and also on the characteristics of the transport network.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 <p id="section-7.5-2">This specification recommends a default value of 30 seconds for
 T-valid.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
 </section>
@@ -2782,8 +2783,7 @@ when the DTLS Chunk is not in VALIDATION or PROTECTED state.<a href="#section-8-
           <div class="alignCenter art-svg artwork" id="section-8-5.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="144" width="528" viewBox="0 0 528 144" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
               <path d="M 8,64 L 8,128" fill="none" stroke="black"></path>
-              <path d="M 504,96 L 504,128" fill="none" stroke="black"></path>
-              <path d="M 520,64 L 520,96" fill="none" stroke="black"></path>
+              <path d="M 520,64 L 520,128" fill="none" stroke="black"></path>
               <path d="M 8,64 L 520,64" fill="none" stroke="black"></path>
               <path d="M 8,96 L 520,96" fill="none" stroke="black"></path>
               <path d="M 8,128 L 520,128" fill="none" stroke="black"></path>

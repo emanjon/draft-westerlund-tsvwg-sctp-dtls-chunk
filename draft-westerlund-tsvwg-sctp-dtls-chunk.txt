@@ -781,62 +781,70 @@ Table of Contents
 
 7.1.  Establishment of a Protected Association
 
-   An SCTP Endpoint acting as initiator willing to create a protected
-   association shall send to the remote peer an INIT chunk containing
-   the Protected Association parameter (see Section 4.1) whith the
-   optional information, if any (see Figure 2).
+   An SCTP Endpoint acting as initiator willing to create a DTLS 1.3
+   chunk protected association shall send to the remote peer an INIT
+   chunk containing the DTLS 1.3 Chunk Protected Association parameter
+   (see Section 4.1) whith the optional information, if any (see
+   Figure 2).
 
    An SCTP Endpoint acting as responder, when receiving an INIT chunk
-   with protected association parameter, will reply with INIT-ACK with
-   its own optional information.
+   with DTLS 1.3 Chunk Protected Association parameter, will reply with
+   INIT-ACK with its own DTLS 1.3 Chunk Protected Association parameter
+   and any optional information.
 
    Additionally, an SCTP Endpoint acting as responder willing to support
    only protected associations shall consider INIT chunk not containing
-   the Protected Association parameter as an error, thus it will reply
-   with an ABORT chunk according to what specified in Section 6.1
-   indicating that for this endpoint mandatory protected association
-   parameter is missing.
+   the DTLS 1.3 Chunk Protected Association parameter as an error, thus
+   it will reply with an ABORT chunk according to what specified in
+   Section 6.1 indicating that for this endpoint mandatory DTLS 1.3
+   Chunk Protected Association parameter is missing.
 
    When initiator and responder have agreed on a protected association
    by means of handshaking INIT/INIT-ACK the SCTP association
    establishment continues until it has reached the ESTABLISHED state.
-   However, before the SCTP assocation is protected by the DTLS Chunk
-   and DTLS 1.3 some additional states needs to be passed.  First DTLS
-   1.3 needs be initializied in the PROTECTION INTILIZATION state.  When
-   that has been accomplished one enters the VALIDATION state where one
-   validates the exchange of the Protected Association Parameter.  If
+   However, before the SCTP assocation is protected by the DTLS 1.3
+   Chunk some additional states needs to be passed.  First DTLS 1.3
+   Chunk needs be initializied in the PROTECTION INTILIZATION state.
+   This MAY be accomplished by the procedure defined in
+   [I-D.westerlund-tsvwg-sctp-DTLS-handshake], or through other methods
+   that results in at least one Key ID has initialized state using the
+   API.  When that has been accomplished one enters the VALIDATION state
+   where one validates the exchange of the DTLS 1.3 Chunk Protected
+   Association Parameter and any alternative protection solutions.  If
    that is successful one enters the PROTECTED state.  This state
    sequence is depicted in Section 7.3.
 
    Until the procedure has reached the PROTECTED state the only usage of
-   DATA Chunks that is accepted is DATA Chunks with the SCTP-DTLS PPID.
-   Any other DATA chunk being sent on a Protected association SHALL be
+   DATA Chunks that is accepted is DATA Chunks with the SCTP-DTLS PPID
+   used to exchange in-band key establishment messages for DTLS.  Any
+   other DATA chunk being sent on a Protected association SHALL be
    silently discarded.
 
    DTLS 1.3 initializes itself by transferring its own handshake
-   messages as payload of the DATA chunk necessary.  The DTLS Chunk
+   messages as payload of the DATA chunk necessary
+   [I-D.westerlund-tsvwg-sctp-DTLS-handshake].  The DTLS 1.3 Chunk
    initialization SHOULD be supervised by a T-valid timer that fits DTLS
    1.3 handshake and may also be further adjusted based on whether
    expected RTT values are outside of the ones commonly occurring on the
-   general Internet, see Section 7.5.  At completion of DTLS 1.3
+   general Internet, see Section 7.5.  At completion of DTLS 1.3 Chunk
    initialization the setup of the Protected association is complete and
-   one enters the VALIDATION state, and from that time on only DTLS
+   one enters the VALIDATION state, and from that time on only DTLS 1.3
    chunks will be exchanged.  Any plain text chunk will be silently
    discarded.
 
-   DTLS 1.3 key establishment is in-band, thus it will start the
-   handshake with its peer and in case of failure or T-valid timeout,
-   the endpoint will generate an ABORT chunk.  The ERROR handling
-   follows what specified in Section 6.2.1.
+   In case of T-valid timeout, the endpoint will generate an ABORT
+   chunk.  The ERROR handling follows what specified in Section 6.2.1.
 
    When entering the VALIDATION state, the initiator MUST send to the
-   responder a PVALID chunk (see Table 3) containing the Options
-   previously sent in the protected association parameter of the INIT
-   chunk.  The transmission of the PVALID chunk MUST be done reliably.
-   The responder receiving the PVALID chunk will compare the Options
-   with the one previously received in the INIT chunk, if they are
-   exactly the same, it will reply to the initiator with a PVALID chunk
-   containing the chosen Options, otherwise it will reply with an ABORT
+   responder a PVALID chunk (see Table 3) containing indication of all
+   offered protection solutions previously sent in the INIT chunk,
+   including the 0x1 value indicating that DTLS 1.3 Chunk Protected
+   Association parameter was included.  The transmission of the PVALID
+   chunk MUST be done reliably.  The responder receiving the PVALID
+   chunk will compare the indicated solutions with the ones previously
+   received as parameters in the INIT chunk, if they are exactly the
+   same, it will reply to the initiator with a PVALID chunk containing
+   the chose proteciton solution, otherwise it will reply with an ABORT
    chunk.  ERROR CAUSE will indicate "Failure in Validation" and the
    SCTP association will be terminated.  If the association was not
    aborted the protected association is considered successfully
@@ -906,23 +914,20 @@ Table of Contents
 7.4.  Considerations on Key Management
 
    When the Association is in PROTECTION INITILIZATION state, in-band
-   key management shall exploit SCTP DATA chunk with the SCTP-DTLS PPID
-   (see Table 9) that will be sent unencrypted.
+   key management MAY exploit SCTP DATA chunk with the SCTP-DTLS PPID
+   (see Table 9) for message transfer that will be sent unencrypted.
 
    When the Association is in DTLS chunk PROTECTED state and the SCTP
    assocation is in ESTABLISHED or any of the states that can be reached
-   after ESTABLISHED state, in-band key management shall exploit SCTP
-   DATA chunk that will be protected by the Protection Operator and
-   encapsulated in DTLS chunks.
-
-   In-band key management shall use a dedicated SCTP-DTLS Payload
-   Protocol Identifier assigned by IANA.
+   after ESTABLISHED state, in-band key management are RECOMMENDED to
+   exploit SCTP DATA chunk for message transmission that will be
+   protected by the DTLS 1.3 protected and encapsulated in DTLS chunks.
 
 7.5.  Consideration on T-valid
 
    The timer T-Valid supervises initializations that depend on how the
-   handshake is specified for the Protection Engine and also on the
-   characteristics of the transport network.
+   handshake is specified for the key establishment used for the DTLS
+   1.3 chunk and also on the characteristics of the transport network.
 
    This specification recommends a default value of 30 seconds for
    T-valid.
@@ -972,7 +977,7 @@ Table of Contents
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      |                         Common Header                         |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                         DTLS Chunk                          |
+     |                         DTLS Chunk                            |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
                       Figure 9: Protected SCTP Packets
